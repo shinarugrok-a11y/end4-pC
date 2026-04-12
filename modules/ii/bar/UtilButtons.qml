@@ -12,20 +12,21 @@ import Quickshell.Services.UPower
 Item {
     id: root
     property bool borderless: Config.options.bar.borderless
-    implicitWidth: rowLayout.implicitWidth + rowLayout.spacing - 4
-    implicitHeight: rowLayout.implicitHeight
+    property bool vertical: Config.options.bar.vertical
 
-    RowLayout {
-        id: rowLayout
+    implicitWidth: vertical ? Appearance.sizes.verticalBarWidth : flow.implicitWidth + 4
+    implicitHeight: vertical ? flow.implicitHeight + 4 : Appearance.sizes.barHeight
 
-        spacing: 4
+    Flow {
+        id: flow
         anchors.centerIn: parent
+        flow: root.vertical ? Flow.TopToBottom : Flow.LeftToRight
+        spacing: 4
 
         Loader {
             active: Config.options.bar.utilButtons.showScreenSnip
             visible: Config.options.bar.utilButtons.showScreenSnip
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: Quickshell.execDetached(["qs", "-p", Quickshell.shellPath(""), "ipc", "call", "region", "screenshot"]);
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
@@ -42,7 +43,6 @@ Item {
             visible: Config.options.bar.utilButtons.showScreenRecord
             sourceComponent: Item {
                 id: recordingItem
-                Layout.alignment: Qt.AlignVCenter
                 implicitWidth: btn.implicitWidth + timerRevealer.implicitWidth
                 implicitHeight: btn.implicitHeight
 
@@ -118,7 +118,6 @@ Item {
             active: Config.options.bar.utilButtons.showColorPicker
             visible: Config.options.bar.utilButtons.showColorPicker
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: Quickshell.execDetached(["hyprpicker", "-a"])
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
@@ -134,7 +133,6 @@ Item {
             active: Config.options.bar.utilButtons.showKeyboardToggle
             visible: Config.options.bar.utilButtons.showKeyboardToggle
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: GlobalStates.oskOpen = !GlobalStates.oskOpen
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
@@ -150,7 +148,6 @@ Item {
             active: Config.options.bar.utilButtons.showMicToggle
             visible: Config.options.bar.utilButtons.showMicToggle
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: Quickshell.execDetached(["wpctl", "set-mute", "@DEFAULT_SOURCE@", "toggle"])
                 MaterialSymbol {
                     horizontalAlignment: Qt.AlignHCenter
@@ -166,7 +163,6 @@ Item {
             active: Config.options.bar.utilButtons.showDarkModeToggle
             visible: Config.options.bar.utilButtons.showDarkModeToggle
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: event => {
                     if (Appearance.m3colors.darkmode) {
                         Hyprland.dispatch(`exec ${Directories.wallpaperSwitchScriptPath} --mode light --noswitch`);
@@ -188,16 +184,12 @@ Item {
             active: Config.options.bar.utilButtons.showPerformanceProfileToggle
             visible: Config.options.bar.utilButtons.showPerformanceProfileToggle
             sourceComponent: CircleUtilButton {
-                Layout.alignment: Qt.AlignVCenter
                 onClicked: event => {
                     if (PowerProfiles.hasPerformanceProfile) {
                         switch(PowerProfiles.profile) {
-                            case PowerProfile.PowerSaver: PowerProfiles.profile = PowerProfile.Balanced
-                            break;
-                            case PowerProfile.Balanced: PowerProfiles.profile = PowerProfile.Performance
-                            break;
-                            case PowerProfile.Performance: PowerProfiles.profile = PowerProfile.PowerSaver
-                            break;
+                            case PowerProfile.PowerSaver: PowerProfiles.profile = PowerProfile.Balanced; break;
+                            case PowerProfile.Balanced: PowerProfiles.profile = PowerProfile.Performance; break;
+                            case PowerProfile.Performance: PowerProfiles.profile = PowerProfile.PowerSaver; break;
                         }
                     } else {
                         PowerProfiles.profile = PowerProfiles.profile == PowerProfile.Balanced ? PowerProfile.PowerSaver : PowerProfile.Balanced

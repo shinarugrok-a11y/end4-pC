@@ -1,5 +1,4 @@
 pragma ComponentBehavior: Bound
-
 import qs.modules.common
 import qs.modules.common.widgets
 import qs.services
@@ -10,8 +9,10 @@ import QtQuick.Layouts
 MouseArea {
     id: root
     property bool hovered: false
-    implicitWidth: rowLayout.implicitWidth + 6
-    implicitHeight: Appearance.sizes.barHeight
+    property bool vertical: Config.options.bar.vertical
+
+    implicitWidth: vertical ? Appearance.sizes.verticalBarWidth : rowLayout.implicitWidth + 6
+    implicitHeight: vertical ? colLayout.implicitHeight + 12 : Appearance.sizes.barHeight
 
     acceptedButtons: Qt.LeftButton | Qt.RightButton
     hoverEnabled: !Config.options.bar.tooltips.clickToShow
@@ -19,17 +20,19 @@ MouseArea {
     onPressed: {
         if (mouse.button === Qt.RightButton) {
             Weather.getData();
-            Quickshell.execDetached(["notify-send", 
-                Translation.tr("Weather"), 
-                Translation.tr("Refreshing (manually triggered)")
-                , "-a", "Shell"
+            Quickshell.execDetached(["notify-send",
+                Translation.tr("Weather"),
+                Translation.tr("Refreshing (manually triggered)"),
+                "-a", "Shell"
             ])
             mouse.accepted = false
         }
     }
 
+    // Horizontal layout
     RowLayout {
         id: rowLayout
+        visible: !root.vertical
         anchors.centerIn: parent
 
         MaterialSymbol {
@@ -41,11 +44,34 @@ MouseArea {
         }
 
         StyledText {
-            visible: true
             font.pixelSize: Appearance.font.pixelSize.small
             color: Appearance.colors.colOnLayer1
             text: Weather.data?.temp ?? "--°"
             Layout.alignment: Qt.AlignVCenter
+        }
+    }
+
+    // Vertical layout
+    ColumnLayout {
+        id: colLayout
+        visible: root.vertical
+        anchors.centerIn: parent
+        spacing: 4
+
+        MaterialSymbol {
+            fill: 0
+            text: Icons.getWeatherIcon(Weather.data.wCode) ?? "cloud"
+            iconSize: Appearance.font.pixelSize.large
+            color: Appearance.colors.colOnLayer1
+            Layout.alignment: Qt.AlignHCenter
+        }
+
+        StyledText {
+            font.pixelSize: Appearance.font.pixelSize.small
+            color: Appearance.colors.colOnLayer1
+            // quitar la C o F del final
+            text: (Weather.data?.temp ?? "--°").replace(/[CF]$/, "")
+            Layout.alignment: Qt.AlignHCenter
         }
     }
 
