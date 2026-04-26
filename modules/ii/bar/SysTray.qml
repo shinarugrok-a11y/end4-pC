@@ -71,7 +71,7 @@ Item {
         columns: root.vertical ? 1 : -1
         anchors.fill: parent
         rowSpacing: 8
-        anchors.leftMargin: 8
+        anchors.leftMargin: 5
         columnSpacing: Config.options.bar.cornerStyle === 2 ? 10 : 15
 
         RippleButton {
