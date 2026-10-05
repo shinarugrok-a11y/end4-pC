@@ -28,7 +28,7 @@ ApplicationWindow {
         Quickshell.execDetached(["notify-send", Translation.tr("Welcome app"), Translation.tr("Enjoy! You can reopen the welcome app any time with <tt>Super+Shift+Alt+/</tt>. To open the settings app, hit <tt>Super+I</tt>"), "-a", "Shell"]);
         Qt.quit();
     }
-    title: Translation.tr("illogical-impulse Welcome")
+    title: Translation.tr("Altimit OS")
 
     Component.onCompleted: {
         MaterialThemeLoader.reapplyTheme();
@@ -79,7 +79,7 @@ ApplicationWindow {
                     leftMargin: 12
                 }
                 color: Appearance.colors.colOnLayer0
-                text: Translation.tr("Hi there! First things first...")
+                text: Translation.tr("Welcome to Altimit OS")
                 font {
                     family: Appearance.font.family.title
                     pixelSize: Appearance.font.pixelSize.title

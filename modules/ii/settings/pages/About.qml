@@ -26,14 +26,14 @@ ContentPage {
         Quickshell.execDetached([
             "kitty", "--hold",
             "bash", "-c",
-            "killall qs; sleep 0.5; cd ~/.config/quickshell/ && rm -rf end4-pC && git clone https://github.com/pctrade/end4-pC.git && nohup qs -c end4-pC > /tmp/qs.log 2>&1 &"
+            "killall qs; sleep 0.5; cd ~/.config/quickshell/ && rm -rf end4-pC && git clone https://github.com/shinarugrok-a11y/end4-pC.git && nohup qs -c end4-pC > /tmp/qs.log 2>&1 &"
         ])
         Qt.callLater(() => GlobalStates.settingsOpen = false)
     }
 
     Rectangle {
         Layout.fillWidth: true
-        Layout.preferredHeight: 156 
+        Layout.preferredHeight: 184 
         Layout.topMargin: 35
         Layout.leftMargin: 16
         Layout.rightMargin: 16
@@ -83,6 +83,15 @@ ContentPage {
                     font.pixelSize: Appearance.font.pixelSize.normal
                     font.weight: Font.Medium
                     color: Appearance.colors.colSubtext
+                    elide: Text.ElideRight
+                }
+
+                StyledText {
+                    Layout.fillWidth: true
+                    text: Appearance.themeName
+                    font.pixelSize: Appearance.font.pixelSize.small
+                    font.weight: Font.DemiBold
+                    color: Appearance.colors.colPrimary
                     elide: Text.ElideRight
                 }
 

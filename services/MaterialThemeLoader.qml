@@ -8,26 +8,53 @@ import Quickshell
 import Quickshell.Io
 
 /**
- * Automatically reloads generated material colors.
+ * Loads Material colors for the shell.
+ * Default is the bundled Altimit OS / Grok Bot theme. Wallpaper-generated
+ * colors.json is used only when appearance.palette.lockTheme is false.
  * It is necessary to run reapplyTheme() on startup because Singletons are lazily loaded.
  */
 Singleton {
     id: root
-    property string filePath: Directories.generatedMaterialThemePath
+    property string bundledThemePath: Directories.altimitOsGrokBotThemePath
+    property string filePath: bundledThemePath
+
+    function themeIsLocked() {
+        return (Config.options?.appearance?.palette?.lockTheme ?? true) !== false
+    }
+
+    function preferredLivePath() {
+        return root.themeIsLocked() ? root.bundledThemePath : Directories.generatedMaterialThemePath
+    }
 
     function reapplyTheme() {
-        themeFileView.reload()
+        const next = root.preferredLivePath()
+        if (root.filePath === next)
+            themeFileView.reload()
+        else
+            root.filePath = next
     }
 
     function applyColors(fileContent) {
-        const json = JSON.parse(fileContent)
-        for (const key in json) {
-            if (json.hasOwnProperty(key)) {
-                // Convert snake_case to CamelCase
-                const camelCaseKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
-                const m3Key = `m3${camelCaseKey}`
-                Appearance.m3colors[m3Key] = json[key]
-            }
+        let json
+        try {
+            json = JSON.parse(fileContent)
+        } catch (error) {
+            console.log("[Altimit OS] Could not parse theme file:", error)
+            return
+        }
+        const source = (json && typeof json.id === "string" && json.colors) ? json.colors : json
+        for (const key in source) {
+            if (!source.hasOwnProperty(key))
+                continue
+            const value = source[key]
+            if (typeof value !== "string" || value.charAt(0) !== "#")
+                continue
+            const camelCaseKey = key.replace(/_([a-z])/g, (g) => g[1].toUpperCase())
+            const m3Key = `m3${camelCaseKey}`
+            if (Appearance.m3colors[m3Key] !== undefined)
+                Appearance.m3colors[m3Key] = value
+            else if (Appearance.m3colors[camelCaseKey] !== undefined)
+                Appearance.m3colors[camelCaseKey] = value
         }
         Appearance.m3colors.darkmode = (Appearance.m3colors.m3background.hslLightness < 0.5)
     }
@@ -37,13 +64,24 @@ Singleton {
     }
 
     function useLockTheme() {
+        if (root.themeIsLocked()) {
+            root.reapplyTheme()
+            return
+        }
         root.filePath = ""
         root.filePath = Directories.generatedLockMaterialThemePath
     }
 
     function useLiveTheme() {
-        root.filePath = ""
-        root.filePath = Directories.generatedMaterialThemePath
+        root.reapplyTheme()
+    }
+
+    Connections {
+        target: Config
+        function onReadyChanged() {
+            if (Config.ready)
+                root.reapplyTheme()
+        }
     }
 
     Connections {
@@ -51,8 +89,10 @@ Singleton {
         enabled: false
         target: Config.options.background
         function onWallpaperPathChanged() {
-            root.filePath = ""
-            root.filePath = Directories.generatedMaterialThemePath
+            if (!root.themeIsLocked()) {
+                root.filePath = ""
+                root.filePath = Directories.generatedMaterialThemePath
+            }
             resetFilePathNextWallpaperChange.enabled = false
         }
     }
@@ -76,9 +116,16 @@ Singleton {
             delayedFileRead.start()
         }
         onLoadedChanged: {
+            if (!themeFileView.loaded)
+                return
             const fileContent = themeFileView.text()
+            if (!fileContent || fileContent.length === 0)
+                return
             root.applyColors(fileContent)
         }
-        onLoadFailed: root.resetFilePathNextTime();
+        onLoadFailed: {
+            if (root.filePath !== root.bundledThemePath)
+                root.filePath = root.bundledThemePath
+        }
     }
 }
