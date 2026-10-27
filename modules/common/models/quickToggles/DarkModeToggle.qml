@@ -21,5 +21,7 @@ QuickToggleModel {
         }
     }
 
-    tooltipText: Translation.tr("Dark Mode")
+    tooltipText: (Config.options?.appearance?.palette?.lockTheme ?? true)
+        ? Translation.tr("Shell colors stay on Altimit OS / Grok Bot while appearance.palette.lockTheme is true")
+        : Translation.tr("Dark Mode")
 }
